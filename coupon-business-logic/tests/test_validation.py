@@ -74,8 +74,8 @@ async def test_validate_already_used_coupon(client, test_session_factory):
         async with session.begin():
             await session.execute(
                 text(
-                    "INSERT INTO transactions (id, user_id, coupon_id, original_amount, discount_amount, final_amount) "
-                    "VALUES (gen_random_uuid(), :uid, :cid, 100.00, 100.00, 0.00)"
+                    "INSERT INTO transactions (id, user_id, coupon_id, original_amount, discount_amount, final_amount, status) "
+                    "VALUES (gen_random_uuid(), :uid, :cid, 100.00, 100.00, 0.00, 'success')"
                 ),
                 {"uid": str(USER_1_ID), "cid": str(COUPON_ACTIVE_ID)},
             )

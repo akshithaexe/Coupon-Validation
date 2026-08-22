@@ -50,10 +50,7 @@ async def test_engine():
 
     yield engine
 
-    # Teardown: drop all tables and the test database
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
-
+    # Teardown: dispose engine and force drop test database
     await engine.dispose()
 
     admin_engine = create_async_engine(ADMIN_DB_URL, isolation_level="AUTOCOMMIT")
@@ -71,11 +68,9 @@ async def test_session_factory(test_engine):
 
 @pytest_asyncio.fixture
 async def db_session(test_session_factory) -> AsyncGenerator[AsyncSession, None]:
-    """Yield a session for direct DB queries in tests, with rollback after each test."""
+    """Yield a session for direct DB queries in tests."""
     async with test_session_factory() as session:
         yield session
-        # Rollback any uncommitted changes after each test
-        await session.rollback()
 
 
 @pytest_asyncio.fixture

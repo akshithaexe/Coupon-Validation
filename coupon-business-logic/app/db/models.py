@@ -74,7 +74,7 @@ class Transaction(Base):
         Numeric(12, 2), nullable=False
     )
     status: Mapped[str] = mapped_column(
-        String(20), nullable=False, default="success"
+        String(20), nullable=False, default="success", server_default="success"
     )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default="now()"
