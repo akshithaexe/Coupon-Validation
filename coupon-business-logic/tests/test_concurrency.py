@@ -26,7 +26,7 @@ from tests.conftest import (
     USER_2_ID,
 )
 
-pytestmark = pytest.mark.asyncio
+pytestmark = pytest.mark.asyncio(loop_scope="session")
 
 CONCURRENT_REQUESTS = 10
 

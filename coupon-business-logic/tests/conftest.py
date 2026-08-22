@@ -1,13 +1,16 @@
 import asyncio
+import sys
 import uuid
 from collections.abc import AsyncGenerator
+
+if sys.platform == "win32":
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
-from sqlalchemy.pool import NullPool
 
 from app.core.config import settings
 from app.db.database import get_session
@@ -41,8 +44,8 @@ async def test_engine():
 
     await admin_engine.dispose()
 
-    # Create the engine for the test database with NullPool to prevent asyncpg cross-loop issues
-    engine = create_async_engine(TEST_DB_URL, echo=False, poolclass=NullPool)
+    # Create the engine for the test database
+    engine = create_async_engine(TEST_DB_URL, echo=False)
 
     # Create all tables
     async with engine.begin() as conn:
