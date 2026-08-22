@@ -74,8 +74,8 @@ async def test_validate_already_used_coupon(client, test_session_factory):
         async with session.begin():
             await session.execute(
                 text(
-                    "INSERT INTO transactions (user_id, coupon_id, original_amount, discount_amount, final_amount) "
-                    "VALUES (:uid, :cid, 100.00, 100.00, 0.00)"
+                    "INSERT INTO transactions (id, user_id, coupon_id, original_amount, discount_amount, final_amount) "
+                    "VALUES (gen_random_uuid(), :uid, :cid, 100.00, 100.00, 0.00)"
                 ),
                 {"uid": str(USER_1_ID), "cid": str(COUPON_ACTIVE_ID)},
             )
@@ -87,8 +87,8 @@ async def test_validate_already_used_coupon(client, test_session_factory):
             txn_id = result.scalar_one()
             await session.execute(
                 text(
-                    "INSERT INTO coupon_usages (coupon_id, user_id, transaction_id) "
-                    "VALUES (:cid, :uid, :tid)"
+                    "INSERT INTO coupon_usages (id, coupon_id, user_id, transaction_id) "
+                    "VALUES (gen_random_uuid(), :cid, :uid, :tid)"
                 ),
                 {"cid": str(COUPON_ACTIVE_ID), "uid": str(USER_1_ID), "tid": str(txn_id)},
             )

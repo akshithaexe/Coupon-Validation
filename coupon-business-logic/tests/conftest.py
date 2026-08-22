@@ -7,6 +7,7 @@ import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.pool import NullPool
 
 from app.core.config import settings
 from app.db.database import get_session
@@ -27,14 +28,6 @@ ADMIN_DB_URL = f"{_base_url}/postgres"
 TEST_DB_URL = f"{_base_url}/{TEST_DB_NAME}"
 
 
-@pytest.fixture(scope="session")
-def event_loop():
-    """Create a single event loop for the entire test session."""
-    loop = asyncio.new_event_loop()
-    yield loop
-    loop.close()
-
-
 @pytest_asyncio.fixture(scope="session")
 async def test_engine():
     """Create the test database, yield an engine, then drop the test database."""
@@ -43,13 +36,13 @@ async def test_engine():
 
     async with admin_engine.connect() as conn:
         # Drop if leftover from a previous failed run
-        await conn.execute(text(f"DROP DATABASE IF EXISTS {TEST_DB_NAME}"))
+        await conn.execute(text(f"DROP DATABASE IF EXISTS {TEST_DB_NAME} WITH (FORCE)"))
         await conn.execute(text(f"CREATE DATABASE {TEST_DB_NAME}"))
 
     await admin_engine.dispose()
 
-    # Create the engine for the test database
-    engine = create_async_engine(TEST_DB_URL, echo=False)
+    # Create the engine for the test database with NullPool to prevent asyncpg cross-loop issues
+    engine = create_async_engine(TEST_DB_URL, echo=False, poolclass=NullPool)
 
     # Create all tables
     async with engine.begin() as conn:
@@ -65,7 +58,7 @@ async def test_engine():
 
     admin_engine = create_async_engine(ADMIN_DB_URL, isolation_level="AUTOCOMMIT")
     async with admin_engine.connect() as conn:
-        await conn.execute(text(f"DROP DATABASE IF EXISTS {TEST_DB_NAME}"))
+        await conn.execute(text(f"DROP DATABASE IF EXISTS {TEST_DB_NAME} WITH (FORCE)"))
     await admin_engine.dispose()
 
 
